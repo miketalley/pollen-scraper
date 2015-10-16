@@ -24,9 +24,11 @@
   "homepage": "https://github.com/miketalley/pollen-scraper#readme",
   "dependencies": {
     "body-parser": "^1.14.1",
+    "cheerio": "^0.19.0",
     "express": "^4.13.3",
     "fs": "0.0.2",
     "jquery": "^2.1.4",
-    "phantom": "^0.8.0"
+    "phantom": "^0.8.0",
+    "request": "^2.65.0"
   }
 }
