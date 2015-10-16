@@ -1,0 +1,32 @@
+{
+  "name": "pollen-scraper",
+  "version": "1.0.0",
+  "description": "Scraper designed to compress the process of website transition.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miketalley/pollen-scraper.git"
+  },
+  "keywords": [
+    "pollen",
+    "scraper",
+    "thrivehive",
+    "pollen-scraper"
+  ],
+  "author": "Mike Talley",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/miketalley/pollen-scraper/issues"
+  },
+  "homepage": "https://github.com/miketalley/pollen-scraper#readme",
+  "dependencies": {
+    "body-parser": "^1.14.1",
+    "express": "^4.13.3",
+    "fs": "0.0.2",
+    "jquery": "^2.1.4",
+    "phantom": "^0.8.0"
+  }
+}
