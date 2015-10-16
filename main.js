@@ -54,8 +54,21 @@ function scrapeSite(req, res){
 
 	console.log("Scraping: ", site);
 
-	scraper.getSiteBodyHTML(null, function(html){
-		scraper.showScrapeResults(html, res);
+	scraper.getSiteHTML(null, function(html){
+		var $dom = scraper.createFakeDOM(html),
+			uniqueLinks = scraper.getUniqueLinks($dom),
+			linksHTML = '';
+
+		console.log('Links Count: ', uniqueLinks.length);
+		uniqueLinks.forEach(function(link){
+			console.log(111111111, link.html());
+
+			return linksHTML.concat(link.outerHTML);
+		});
+
+		console.log(22222222222222222);
+		console.log(linksHTML);
+		scraper.showScrapeResults(linksHTML, res);
 	});
 }
 
@@ -72,24 +85,51 @@ function Scraper(site){
 		return new URL(this.site).host;
 	};
 
-	this.getSiteBodyHTML = function(site, callback){
+	this.getSiteHTML = function(site, callback){
+		if(typeof callback !== "function"){
+			throw new Error("No callback! getSiteHTML must be passed a site and callback!");
+		}
+
 		request(site || this.site, function(error, response, html){
 			if(!error){
-				var $ = cheerio.load(html),
-					$body = $('body'),
-					bodyHTML = $body.html();
-
-				if(typeof callback === "function"){
-					callback(bodyHTML);
-				}
-
-				return bodyHTML;
+				callback(html);
+				return html;
 			}
 			else{
 				console.log("Error!", error);
 				return "";
 			}
 		});
+	};
+
+	this.createFakeDOM = function(html){
+		return cheerio.load(html);
+	};
+
+	this.getBodyHTML = function($){
+		var $body = $('body');
+		
+		return $body.html();
+	};
+
+	this.getUniqueLinks = function($){
+		var links = $('a'),
+			uniqueLinks = [],
+			linksArray = Array.prototype.slice.call(links);
+
+		// TODO -- Make this faster
+		// Watch out for anchors with no href
+		linksArray.forEach(function(link){
+			var duplicateHrefAttributeFound = uniqueLinks.filter(function(uniqueLink){
+				return uniqueLink.attribs.href === link.attribs.href;
+			})[0];
+
+			if(!duplicateHrefAttributeFound){
+				uniqueLinks.push(link);
+			}
+		});
+
+		return uniqueLinks;
 	};
 
 	this.showScrapeResults = function(results, res){
@@ -105,4 +145,11 @@ function Scraper(site){
 
 		console.log("File saved to " + saveLoc);
 	};
+
+	// This function looks at url, finds links
+	// gets unique links, and returns them
+	this.findUniqueLinksOnPage = function(url){
+
+	};
 }
+
