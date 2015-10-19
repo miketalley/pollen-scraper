@@ -85,8 +85,7 @@ function Scraper(site){
 
 		request(site || this.site, function(error, response, html){
 			if(!error){
-				callback(html);
-				return html;
+				return callback(html);
 			}
 			else{
 				console.log("Error!", error);
@@ -104,17 +103,6 @@ function Scraper(site){
 		
 		return $body.html();
 	};
-
-	// this. = function(html){
-	// 	var $dom = scraper.createFakeDOM(html),
-	// 		uniqueAnchors = scraper.getUniqueLinks($dom),
-	// 		uniqueLinks = [];
-
-	// 	uniqueAnchors.forEach(function(a){
-	// 	});
-
-	// 	return uniqueLinks;
-	// };
 
 	this.showScrapeResults = function(results, res){
 		results.forEach(function(result){
@@ -161,19 +149,31 @@ function Scraper(site){
 		}
 	};
 
-	this.getUniqueLinks = function($){
-		var scraper = this,
-			links = $('a'),
-			uniqueLinks = [],
-			linksArray = Array.prototype.slice.call(links);
+	this.getLinksFromPage = function(url){
+		return this.getSiteHTML(null, function(html){
+			var $ = scraper.createFakeDOM(html),
+				links = $('a'),
+				linksArray = Array.prototype.slice.call(links);
 
-		linksArray = linksArray.map(function(link){
-			return scraper.fixLink(link.attribs.href);
+			linksArray = linksArray.map(function(link){
+				return scraper.fixLink(link.attribs.href);
+			});
+
+			linksArray = _.uniq(linksArray);
+
+			return linksArray;
+		});
+	};
+
+	this.getUniqueSiteLinks = function(url){
+		var uniqueLinks = [];
+			pageLinks = this.getLinksFromPage(url);
+
+		pageLinks.forEach(function(link){
+			var links = this.getLinksFromPage(link);
 		});
 
-		linksArray = _.uniq(linksArray);
-
-		return linksArray;
+		return uniqueLinks;
 	};
 }
 
