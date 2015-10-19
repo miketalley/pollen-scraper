@@ -18,6 +18,7 @@ var fs = require('fs'),
 	cheerio = require('cheerio'),
 	request = require('request'),
 	url = require('url'),
+	_ = require('lodash'),
 	bodyParser = require('body-parser');
 
 // Setup
@@ -51,25 +52,17 @@ function displayScraperForm(req, res){
 function scrapeSite(req, res){
 	var site = req.body.site,
 		scraper = new Scraper(site),
-		scrapeResults;
+		uniqueLinks = [];
 
 	console.log("Scraping: ", site);
 
 	scraper.getSiteHTML(null, function(html){
-		var $dom = scraper.createFakeDOM(html),
-			uniqueAnchors = scraper.getUniqueLinks($dom),
-			uniqueLinks = [];
-
-		uniqueAnchors.forEach(function(a){
-			var fixedAnchor = scraper.fixLink(a.attribs.href);
-
-			if(fixedAnchor){
-				uniqueLinks.push(fixedAnchor);
-			}
-		});
-
-		scraper.showScrapeResults(uniqueLinks, res);
+		var $ = scraper.createFakeDOM(html);
+		uniqueLinks = scraper.getUniqueLinks($);
+		console.log(3333, uniqueLinks);
 	});
+		
+	scraper.showScrapeResults(uniqueLinks, res);
 }
 
 
@@ -112,25 +105,16 @@ function Scraper(site){
 		return $body.html();
 	};
 
-	this.getUniqueLinks = function($){
-		var links = $('a'),
-			uniqueLinks = [],
-			linksArray = Array.prototype.slice.call(links);
+	// this. = function(html){
+	// 	var $dom = scraper.createFakeDOM(html),
+	// 		uniqueAnchors = scraper.getUniqueLinks($dom),
+	// 		uniqueLinks = [];
 
-		// TODO -- Make this faster
-		// Watch out for anchors with no href
-		linksArray.forEach(function(link){
-			var duplicateHrefAttributeFound = uniqueLinks.filter(function(uniqueLink){
-				return uniqueLink.attribs.href === link.attribs.href;
-			})[0];
+	// 	uniqueAnchors.forEach(function(a){
+	// 	});
 
-			if(!duplicateHrefAttributeFound){
-				uniqueLinks.push(link);
-			}
-		});
-
-		return uniqueLinks;
-	};
+	// 	return uniqueLinks;
+	// };
 
 	this.showScrapeResults = function(results, res){
 		results.forEach(function(result){
@@ -175,6 +159,21 @@ function Scraper(site){
 		else{
 			return false;
 		}
+	};
+
+	this.getUniqueLinks = function($){
+		var scraper = this,
+			links = $('a'),
+			uniqueLinks = [],
+			linksArray = Array.prototype.slice.call(links);
+
+		linksArray = linksArray.map(function(link){
+			return scraper.fixLink(link.attribs.href);
+		});
+
+		linksArray = _.uniq(linksArray);
+
+		return linksArray;
 	};
 }
 
