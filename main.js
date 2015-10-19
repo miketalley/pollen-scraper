@@ -17,6 +17,7 @@ var fs = require('fs'),
 	express = require('express'),
 	cheerio = require('cheerio'),
 	request = require('request'),
+	url = require('url'),
 	bodyParser = require('body-parser');
 
 // Setup
@@ -56,19 +57,18 @@ function scrapeSite(req, res){
 
 	scraper.getSiteHTML(null, function(html){
 		var $dom = scraper.createFakeDOM(html),
-			uniqueLinks = scraper.getUniqueLinks($dom),
-			linksHTML = '';
+			uniqueAnchors = scraper.getUniqueLinks($dom),
+			uniqueLinks = [];
 
-		console.log('Links Count: ', uniqueLinks.length);
-		uniqueLinks.forEach(function(link){
-			console.log(111111111, link.html());
+		uniqueAnchors.forEach(function(a){
+			var fixedAnchor = scraper.fixLink(a.attribs.href);
 
-			return linksHTML.concat(link.outerHTML);
+			if(fixedAnchor){
+				uniqueLinks.push(fixedAnchor);
+			}
 		});
 
-		console.log(22222222222222222);
-		console.log(linksHTML);
-		scraper.showScrapeResults(linksHTML, res);
+		scraper.showScrapeResults(uniqueLinks, res);
 	});
 }
 
@@ -133,7 +133,11 @@ function Scraper(site){
 	};
 
 	this.showScrapeResults = function(results, res){
-		res.send(results);
+		results.forEach(function(result){
+			console.log(9876543210, result);
+		});
+
+		// res.send(results);
 	};
 
 	this.saveContent = function(html){
@@ -151,5 +155,32 @@ function Scraper(site){
 	this.findUniqueLinksOnPage = function(url){
 
 	};
+
+	// This method takes a linkUrl and checks it to
+	// see if it is a local/external link and also
+	// catches relative links and attaches the site
+	// url to them to try
+	this.fixLink = function(linkUrl){
+		var urlObj = url.parse(linkUrl),
+			thisHost = url.parse(this.site).host;
+
+		if(typeof linkUrl !== "string" || !linkUrl.length){ throw new Error("fixLink must be passed a valid string!");}
+
+		if(!urlObj.host){
+			return this.site + (linkUrl[0] === '/' ? linkUrl : '/' + linkUrl);
+		}
+		else if(urlObj.host === thisHost){
+			return linkUrl;
+		}
+		else{
+			return false;
+		}
+	};
 }
+
+scrapeSite({
+	body: {
+		site: "http://www.charronmed.com"
+	}
+}, null);
 
