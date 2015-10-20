@@ -58,12 +58,12 @@ function scrapeSite(req, res){
 	console.log("Scraping: ", site);
 
 	uniqueLinks = scraper.getUniqueSiteLinks(site);
-	// scraper.getSiteHTML(null, function(html){
-	// 	var $ = scraper.createFakeDOM(html);
-	// 	console.log(3333, uniqueLinks);
-	// });
-		
-	scraper.showScrapeResults(uniqueLinks, res);
+	
+	console.log("uniqueLinks Promise: ", uniqueLinks);
+	uniqueLinks.done(function(links){
+		console.log(999, links);
+	});
+	// scraper.showScrapeResults(uniqueLinks, res);
 }
 
 
@@ -86,6 +86,7 @@ function Scraper(site){
 		}
 		
 		return new Promise(function(resolve, reject){
+			console.log('Requesting Site: ', site);
 			request(site, function(error, response, html){
 				if(!error){
 					resolve(html);
@@ -168,6 +169,8 @@ function Scraper(site){
 		return linksArray;
 	};
 
+	// Returns a promise that is resolved with the links
+	// found within the HTML at the passed URL
 	this.getLinksFromPage = function(url){
 		var pageHTML = this.getSiteHTML(url);
 
@@ -185,17 +188,31 @@ function Scraper(site){
 		});
 	};
 	
-	this.getUniqueSiteLinks = function(url, uniqueCollection){
-		var uniqueLinks = [];
+	this.getUniqueSiteLinks = function(url){
+		var checkedLinks = [],
+			uncheckedLinks = [],
 			pageLinks = this.getLinksFromPage(url);
 
-		pageLinks.done(function(links){
-			self.processUniqueLinks(links, uniqueLinks);
-		});
+		console.log("Running getUniqueSiteLinks");
 
-		return uniqueLinks;
+		console.log("pageLinks Promise: ", pageLinks);
+		
+
+		return new Promise(function(resolve, reject){
+			pageLinks.done(function(links){
+				uncheckedLinks = uncheckedLinks.concat(links);
+				
+				self.processLinks(uncheckedLinks, checkedLinks)
+				.done(function(links){
+					console.log("Did I ever make it here?");
+					resolve(links);
+				});
+			});
+		});
 	};
 
+	// Checks if links are in list and returns them if they 
+	// are not, optional push flag will concat them to the list
 	this.checkNonDuplicateLinksInList = function(links, list, push){
 		var nonDuplicateLinks = links.filter(function(link){
 			return list.indexOf(link) === -1;
@@ -213,13 +230,40 @@ function Scraper(site){
 			throw new Error("Bad parameters passed to processLinks!");
 		}
 
-		while(uncheckedLinksArray.length){
-			var currentLink = uncheckedLinks[0],
-				links = self.getUniqueSiteLinks(currentLink);
-				uncheckedLinks = self.checkNonDuplicateLinksInList(links, checkedLinksArray);
+		console.log(uncheckedLinksArray.length, checkedLinksArray.length);
 
-			self.checkNonDuplicateLinksInList(uncheckedLinks, uncheckedLinksArray, true);
-		}
+		return new Promise(function(resolve, reject){
+			while(uncheckedLinksArray.length){
+				var currentIndex = 0,
+					currentLink = uncheckedLinksArray[currentIndex],
+					uncheckedLinks, nonDuplicateUncheckedLinks;
+
+				if(currentLink){
+					uncheckedLinks = self.getLinksFromPage(currentLink);
+					uncheckedLinks.done(function(links){
+						nonDuplicateUncheckedLinks = self.checkNonDuplicateLinksInList(links, checkedLinksArray);
+
+						self.checkNonDuplicateLinksInList(nonDuplicateUncheckedLinks, uncheckedLinksArray, true);
+					});
+
+					checkedLinksArray.push(currentLink);
+				}
+				else{
+					console.log("Invalid link, disposing");
+				}
+				
+				uncheckedLinksArray.splice(currentIndex, 1);
+				console.log(uncheckedLinksArray.length, checkedLinksArray.length);
+			}
+
+			resolve(checkedLinksArray);
+		});
+	};
+
+	this.checkIfLinkIsAlreadyKnown = function(links){
+		var nonDuplicateUncheckedLinks = self.checkNonDuplicateLinksInList(links, checkedLinksArray);
+
+		self.checkNonDuplicateLinksInList(nonDuplicateUncheckedLinks, uncheckedLinksArray, true);
 	};
 
 }
