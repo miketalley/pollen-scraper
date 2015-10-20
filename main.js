@@ -18,6 +18,7 @@ var fs = require('fs'),
 	cheerio = require('cheerio'),
 	request = require('request'),
 	url = require('url'),
+	Promise = require('promise'),
 	_ = require('lodash'),
 	bodyParser = require('body-parser');
 
@@ -56,11 +57,11 @@ function scrapeSite(req, res){
 
 	console.log("Scraping: ", site);
 
-	scraper.getSiteHTML(null, function(html){
-		var $ = scraper.createFakeDOM(html);
-		uniqueLinks = scraper.getUniqueLinks($);
-		console.log(3333, uniqueLinks);
-	});
+	uniqueLinks = scraper.getUniqueSiteLinks(site);
+	// scraper.getSiteHTML(null, function(html){
+	// 	var $ = scraper.createFakeDOM(html);
+	// 	console.log(3333, uniqueLinks);
+	// });
 		
 	scraper.showScrapeResults(uniqueLinks, res);
 }
@@ -70,7 +71,8 @@ function scrapeSite(req, res){
 		Scraper
 ======================*/
 function Scraper(site){
-	var OUTPUTFOLDER = '/output/';
+	var self = this,
+		OUTPUTFOLDER = '/output/';
 	
 	this.site = site;
 
@@ -78,19 +80,22 @@ function Scraper(site){
 		return new URL(this.site).host;
 	};
 
-	this.getSiteHTML = function(site, callback){
-		if(typeof callback !== "function"){
-			throw new Error("No callback! getSiteHTML must be passed a site and callback!");
+	this.getSiteHTML = function(site){
+		if(typeof site !== "string"){
+			throw new Error("No site passed to getSiteHTML!");
 		}
-
-		request(site || this.site, function(error, response, html){
-			if(!error){
-				return callback(html);
-			}
-			else{
-				console.log("Error!", error);
-				return "";
-			}
+		
+		return new Promise(function(resolve, reject){
+			request(site, function(error, response, html){
+				if(!error){
+					resolve(html);
+				}
+				else{
+					console.log("Error!", error);
+					reject(error);
+				}
+			});
+			
 		});
 	};
 
@@ -149,32 +154,52 @@ function Scraper(site){
 		}
 	};
 
+	this.getLinksFromHTML = function(html){
+		var $ = this.createFakeDOM(html),
+			links = $('a'),
+			linksArray = Array.prototype.slice.call(links);
+
+		linksArray = linksArray.map(function(link){
+			return self.fixLink(link.attribs.href);
+		});
+
+		linksArray = _.uniq(linksArray);
+
+		return linksArray;
+	};
+
 	this.getLinksFromPage = function(url){
-		return this.getSiteHTML(null, function(html){
-			var $ = scraper.createFakeDOM(html),
-				links = $('a'),
-				linksArray = Array.prototype.slice.call(links);
+		var pageHTML = this.getSiteHTML(url);
 
-			linksArray = linksArray.map(function(link){
-				return scraper.fixLink(link.attribs.href);
+		return new Promise(function(resolve, reject){
+			pageHTML.done(function(resp){
+				if(resp){
+					var links = self.getLinksFromHTML(resp);
+
+					resolve(links);
+				}
+				else{
+					reject("No response");
+				}
 			});
-
-			linksArray = _.uniq(linksArray);
-
-			return linksArray;
 		});
 	};
 
+	this.processUniqueLinks = function(links, accumulator){
+
+	};
+	
 	this.getUniqueSiteLinks = function(url){
 		var uniqueLinks = [];
 			pageLinks = this.getLinksFromPage(url);
 
-		pageLinks.forEach(function(link){
-			var links = this.getLinksFromPage(link);
+		pageLinks.done(function(links){
+			self.processUniqueLinks(links, uniqueLinks);
 		});
 
 		return uniqueLinks;
 	};
+
 }
 
 scrapeSite({
