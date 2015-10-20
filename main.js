@@ -184,12 +184,8 @@ function Scraper(site){
 			});
 		});
 	};
-
-	this.processUniqueLinks = function(links, accumulator){
-
-	};
 	
-	this.getUniqueSiteLinks = function(url){
+	this.getUniqueSiteLinks = function(url, uniqueCollection){
 		var uniqueLinks = [];
 			pageLinks = this.getLinksFromPage(url);
 
@@ -198,6 +194,32 @@ function Scraper(site){
 		});
 
 		return uniqueLinks;
+	};
+
+	this.checkNonDuplicateLinksInList = function(links, list, push){
+		var nonDuplicateLinks = links.filter(function(link){
+			return list.indexOf(link) === -1;
+		});
+
+		if(push){
+			list = list.concat(nonDuplicateLinks);
+		}
+
+		return nonDuplicateLinks;
+	};
+
+	this.processLinks = function(uncheckedLinksArray, checkedLinksArray){
+		if(!uncheckedLinksArray || !checkedLinksArray){
+			throw new Error("Bad parameters passed to processLinks!");
+		}
+
+		while(uncheckedLinksArray.length){
+			var currentLink = uncheckedLinks[0],
+				links = self.getUniqueSiteLinks(currentLink);
+				uncheckedLinks = self.checkNonDuplicateLinksInList(links, checkedLinksArray);
+
+			self.checkNonDuplicateLinksInList(uncheckedLinks, uncheckedLinksArray, true);
+		}
 	};
 
 }
