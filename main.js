@@ -219,7 +219,9 @@ function Scraper(site){
 		});
 
 		if(push){
-			list = list.concat(nonDuplicateLinks);
+			nonDuplicateLinks.forEach(function(link){
+				list.push(link);
+			});
 		}
 
 		return nonDuplicateLinks;
@@ -241,9 +243,12 @@ function Scraper(site){
 				if(currentLink){
 					uncheckedLinks = self.getLinksFromPage(currentLink);
 					uncheckedLinks.done(function(links){
+						console.log(8787, links.length);
 						nonDuplicateUncheckedLinks = self.checkNonDuplicateLinksInList(links, checkedLinksArray);
 
+						console.log(8686, nonDuplicateUncheckedLinks.length, uncheckedLinksArray.length);
 						self.checkNonDuplicateLinksInList(nonDuplicateUncheckedLinks, uncheckedLinksArray, true);
+						console.log(8585, nonDuplicateUncheckedLinks.length, uncheckedLinksArray.length);
 					});
 
 					checkedLinksArray.push(currentLink);
@@ -263,7 +268,9 @@ function Scraper(site){
 	this.checkIfLinkIsAlreadyKnown = function(links){
 		var nonDuplicateUncheckedLinks = self.checkNonDuplicateLinksInList(links, checkedLinksArray);
 
+		console.log(111, uncheckedLinksArray.length);
 		self.checkNonDuplicateLinksInList(nonDuplicateUncheckedLinks, uncheckedLinksArray, true);
+		console.log(222, uncheckedLinksArray.length);
 	};
 
 }
