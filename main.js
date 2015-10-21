@@ -78,11 +78,6 @@ function Scraper(siteUrl){
 	this.uncheckedLinks = [];
 	this.checkedLinks = [];
 
-	this.saveLocation = function(){
-		return new URL(this.site).host;
-	};
-
-	
 
 	this.showScrapeResults = function(results, res){
 		results.forEach(function(result){
@@ -91,22 +86,6 @@ function Scraper(siteUrl){
 
 		// res.send(results);
 	};
-
-	this.saveContent = function(html){
-		var saveLoc = OUTPUTFOLDER + this.saveLocation();
-
-		fs.writeFile(saveLoc, html, function(err){
-			return console.log("Error Saving Content!", err);
-		});
-
-		console.log("File saved to " + saveLoc);
-	};
-
-	
-
-	
-
-	
 	
 	this.getUniqueSiteLinks = function(url){
 		var checkedLinks = [],
@@ -281,6 +260,24 @@ function Website(siteUrl){
 		else{
 			return false;
 		}
+	};
+	
+}
+
+function Utilities(){
+	
+	this.saveLocation = function(){
+		return new URL(this.site).host;
+	};
+
+	this.saveContent = function(html){
+		var saveLoc = OUTPUTFOLDER + this.saveLocation();
+
+		fs.writeFile(saveLoc, html, function(err){
+			return console.log("Error Saving Content!", err);
+		});
+
+		console.log("File saved to " + saveLoc);
 	};
 }
 
