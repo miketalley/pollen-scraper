@@ -70,45 +70,19 @@ function scrapeSite(req, res){
 /* =====================
 		Scraper
 ======================*/
-function Scraper(site){
+function Scraper(siteUrl){
 	var self = this,
 		OUTPUTFOLDER = '/output/';
-	
-	this.site = site;
+
+	this.site = new Website(siteUrl);
+	this.uncheckedLinks = [];
+	this.checkedLinks = [];
 
 	this.saveLocation = function(){
 		return new URL(this.site).host;
 	};
 
-	this.getSiteHTML = function(site){
-		if(typeof site !== "string"){
-			throw new Error("No site passed to getSiteHTML!");
-		}
-		
-		return new Promise(function(resolve, reject){
-			console.log('Requesting Site: ', site);
-			request(site, function(error, response, html){
-				if(!error){
-					resolve(html);
-				}
-				else{
-					console.log("Error!", error);
-					reject(error);
-				}
-			});
-			
-		});
-	};
-
-	this.createFakeDOM = function(html){
-		return cheerio.load(html);
-	};
-
-	this.getBodyHTML = function($){
-		var $body = $('body');
-		
-		return $body.html();
-	};
+	
 
 	this.showScrapeResults = function(results, res){
 		results.forEach(function(result){
@@ -128,65 +102,11 @@ function Scraper(site){
 		console.log("File saved to " + saveLoc);
 	};
 
-	// This function looks at url, finds links
-	// gets unique links, and returns them
-	this.findUniqueLinksOnPage = function(url){
+	
 
-	};
+	
 
-	// This method takes a linkUrl and checks it to
-	// see if it is a local/external link and also
-	// catches relative links and attaches the site
-	// url to them to try
-	this.fixLink = function(linkUrl){
-		var urlObj = url.parse(linkUrl),
-			thisHost = url.parse(this.site).host;
-
-		if(typeof linkUrl !== "string" || !linkUrl.length){ throw new Error("fixLink must be passed a valid string!");}
-
-		if(!urlObj.host){
-			return this.site + (linkUrl[0] === '/' ? linkUrl : '/' + linkUrl);
-		}
-		else if(urlObj.host === thisHost){
-			return linkUrl;
-		}
-		else{
-			return false;
-		}
-	};
-
-	this.getLinksFromHTML = function(html){
-		var $ = this.createFakeDOM(html),
-			links = $('a'),
-			linksArray = Array.prototype.slice.call(links);
-
-		linksArray = linksArray.map(function(link){
-			return self.fixLink(link.attribs.href);
-		});
-
-		linksArray = _.uniq(linksArray);
-
-		return linksArray;
-	};
-
-	// Returns a promise that is resolved with the links
-	// found within the HTML at the passed URL
-	this.getLinksFromPage = function(url){
-		var pageHTML = this.getSiteHTML(url);
-
-		return new Promise(function(resolve, reject){
-			pageHTML.done(function(resp){
-				if(resp){
-					var links = self.getLinksFromHTML(resp);
-
-					resolve(links);
-				}
-				else{
-					reject("No response");
-				}
-			});
-		});
-	};
+	
 	
 	this.getUniqueSiteLinks = function(url){
 		var checkedLinks = [],
@@ -273,6 +193,95 @@ function Scraper(site){
 		console.log(222, uncheckedLinksArray.length);
 	};
 
+}
+
+function Website(siteUrl){
+
+	this.site = siteUrl;
+
+	this.getHTML = function(site){
+		if(typeof site !== "string"){
+			throw new Error("No site passed to getHTML!");
+		}
+		
+		return new Promise(function(resolve, reject){
+			console.log('Requesting Site: ', site);
+			request(site, function(error, response, html){
+				if(!error){
+					resolve(html);
+				}
+				else{
+					console.log("Error!", error);
+					reject(error);
+				}
+			});
+			
+		});
+	};
+
+	this.fakeDOM = function(html){
+		return cheerio.load(html);
+	};
+
+	this.getBodyHTML = function($){
+		var $body = $('body');
+		
+		return $body.html();
+	};
+
+	// Returns a promise that is resolved with the links
+	// found within the HTML at the passed URL
+	this.getLinksFromPage = function(url){
+		var pageHTML = this.getHTML(url);
+
+		return new Promise(function(resolve, reject){
+			pageHTML.done(function(resp){
+				if(resp){
+					var links = self.getLinks(resp);
+
+					resolve(links);
+				}
+				else{
+					reject("No response");
+				}
+			});
+		});
+	};
+
+	this.getLinks = function(html){
+		var $ = this.fakeDOM(html),
+			links = $('a'),
+			linksArray = Array.prototype.slice.call(links);
+
+		linksArray = linksArray.map(function(link){
+			return self.fixLink(link.attribs.href);
+		});
+
+		linksArray = _.uniq(linksArray);
+
+		return linksArray;
+	};
+
+	// This method takes a linkUrl and checks it to
+	// see if it is a local/external link and also
+	// catches relative links and attaches the site
+	// url to them to try
+	this.fixLink = function(linkUrl){
+		var urlObj = url.parse(linkUrl),
+			thisHost = url.parse(this.site).host;
+
+		if(typeof linkUrl !== "string" || !linkUrl.length){ throw new Error("fixLink must be passed a valid string!");}
+
+		if(!urlObj.host){
+			return this.site + (linkUrl[0] === '/' ? linkUrl : '/' + linkUrl);
+		}
+		else if(urlObj.host === thisHost){
+			return linkUrl;
+		}
+		else{
+			return false;
+		}
+	};
 }
 
 scrapeSite({
