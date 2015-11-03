@@ -71,12 +71,54 @@ function scrapeSite(req, res){
 		Scraper
 ======================*/
 function Scraper(siteUrl){
-	var self = this,
-		OUTPUTFOLDER = '/output/';
+	var self = this
 
 	this.site = new Website(siteUrl);
 	this.uncheckedLinks = [];
 	this.checkedLinks = [];
+
+	this.getLinksFromUrl = function(url){
+		return new Promise(function(resolve, reject){
+			var results = {
+				url: url,
+				links: []
+			};
+
+			// Get HTML -- Needs promise
+			// Get Fake DOM
+			// Get all links
+			// Get unique links
+			// Return object with url and links
+
+		});
+	};
+
+	this.getHTML = function(site){
+		if(typeof site !== "string"){
+			throw new Error("No site passed to getHTML!");
+		}
+		
+		return new Promise(function(resolve, reject){
+			console.log('Requesting Site: ', site);
+			request(site, function(error, response, html){
+				if(!error){
+					resolve(html);
+				}
+				else{
+					console.log("Error!", error);
+					reject(error);
+				}
+			});
+			
+		});
+	};
+
+	/*======================*/
+	/*======================*/
+	/*========OLD===========*/
+	/*=======BELOW==========*/
+	/*======================*/
+	/*======================*/
 
 
 	this.showScrapeResults = function(results, res){
