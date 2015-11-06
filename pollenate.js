@@ -89,11 +89,11 @@ function Scraper(siteUrl){
       });
 
       if(self.uncheckedLinks.length){
+        self.uncheckedLinks.forEach(function(uncheckedLink){
+          console.log("Unchecked Link: ", uncheckedLink);
+        });
+        
         self.scrape(self.uncheckedLinks);
-        // self.uncheckedLinks.forEach(function(uncheckedLink){
-        //   self.scrape(uncheckedLink);
-        //   console.log(1234567890);
-        // });
       }
       else{
         console.log("DONE!!!! Found " + self.checkedLinks.length + " links!");
@@ -103,6 +103,7 @@ function Scraper(siteUrl){
   };
 
   this.getLinksFromUrl = function(url){
+    console.log("Getting links from Url: ", url);
     return new Promise(function(resolve, reject){
       // Get HTML -- Needs promise
       self.getHtml(url).done(function(html){
@@ -181,7 +182,7 @@ function Scraper(siteUrl){
 
   function addToUncheckedLinks(urlArray){
     urlArray.forEach(function(url){
-      if(self.uncheckedLinks.indexOf(url) === -1){
+      if(url && self.uncheckedLinks.indexOf(url) === -1){
         self.uncheckedLinks.push(url);
       }
     });
