@@ -162,7 +162,7 @@ function Scraper(siteUrl){
       if(typeof linkUrl !== "string" || !linkUrl.length){ throw new Error("fixLink must be passed a valid string!");}
 
       if(!urlObj.host){
-        return this.site + (linkUrl[0] === '/' ? linkUrl : '/' + linkUrl);
+        return self.site + (linkUrl[0] === '/' ? linkUrl : '/' + linkUrl);
       }
       else if(urlObj.host === thisHost){
         return linkUrl;
