@@ -89,9 +89,11 @@ function Scraper(siteUrl){
       });
 
       if(self.uncheckedLinks.length){
-        self.uncheckedLinks.forEach(function(uncheckedLink){
-          self.scrape(uncheckedLink);
-        });
+        self.scrape(self.uncheckedLinks);
+        // self.uncheckedLinks.forEach(function(uncheckedLink){
+        //   self.scrape(uncheckedLink);
+        //   console.log(1234567890);
+        // });
       }
       else{
         console.log("DONE!!!! Found " + self.checkedLinks.length + " links!");
@@ -172,8 +174,8 @@ function Scraper(siteUrl){
   };
 
   function addToCheckedLinks(url){
-    if(self.checkedLinksArray.indexOf(url) === -1){
-      self.checkedLinksArray.push(url);
+    if(self.checkedLinks.indexOf(url) === -1){
+      self.checkedLinks.push(url);
     }
   }
 
