@@ -158,11 +158,26 @@ function Scraper(siteUrl){
     
     function fixLink(linkUrl){
       var urlObj = url.parse(linkUrl);
-        thisHost = url.parse(self.site).host;
+        thisHost = url.parse(self.site).host,
+        blackListedExtensions = ['pdf'],
+        isBlackListed = false;
 
-      if(typeof linkUrl !== "string" || !linkUrl.length){ throw new Error("fixLink must be passed a valid string!");}
+      if(typeof linkUrl !== "string" || !linkUrl.length){ 
+        console.log("THROWN: ", linkUrl);
+        return false;
+        // throw new Error("fixLink must be passed a valid string!");
+      }
 
-      if(!urlObj.host){
+      blackListedExtensions.forEach(function(ext){
+        if(linkUrl.indexOf(ext) !== -1){
+          isBlackListed = true;
+        }
+      });
+
+      if(isBlackListed){
+        return false;
+      }
+      else if(!urlObj.host){
         return self.site + (linkUrl[0] === '/' ? linkUrl : '/' + linkUrl);
       }
       else if(urlObj.host === thisHost){
@@ -176,6 +191,9 @@ function Scraper(siteUrl){
 
   function addToCheckedLinks(url){
     if(self.checkedLinks.indexOf(url) === -1){
+      var index = self.uncheckedLinks.indexOf(url);
+
+      self.uncheckedLinks.splice(index, 1);
       self.checkedLinks.push(url);
     }
   }
