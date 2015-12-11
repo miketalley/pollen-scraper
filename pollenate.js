@@ -54,9 +54,7 @@ function scrapeSite(req, res){
   var site = req.body.site,
     scraper = new Scraper(site);
 
-
   scraper.scrape([site]);
-
 }
 
 
@@ -73,19 +71,13 @@ function Scraper(siteUrl){
   this.scrape = function(urls){
     var promises = [];
 
-    console.log("Scraping!", self.uncheckedLinks.length, self.checkedLinks.length);
-
     urls.forEach(function(url){
       if(urlIsUnchecked(url)){
-        setTimeout(function(){
-          var newLinksPromise = self.getLinksFromUrl(url);
-
-          console.log('Got new links promise', newLinksPromise);
-          promises.push(newLinksPromise);
-        }, 1000);
+        promises.push(self.getLinksFromUrl(url));
       }
     });
 
+    // Wait for all links to be retrieved first
     Promise.all(promises).done(function(getLinksObjArray){
       getLinksObjArray.forEach(function(obj){
         // This url has now been scraped successfully
@@ -94,27 +86,24 @@ function Scraper(siteUrl){
         addToUncheckedLinks(obj.links);
       });
 
-      if(self.uncheckedLinks.length){
-        self.uncheckedLinks.forEach(function(uncheckedLink){
-          // console.log("Unchecked Link: ", uncheckedLink);
-        });
-        
+      if(self.uncheckedLinks.length && getLinksObjArray.length){
         self.scrape(self.uncheckedLinks);
       }
       else{
         console.log("DONE!!!! Found " + self.checkedLinks.length + " links!");
+        self.checkedLinks.forEach(function(link){
+          console.log("Checked Link: ", link);
+        });
         return self.checkedLinks;
       }
     });
   };
 
   this.getLinksFromUrl = function(url){
-    // console.log("Getting links from Url: ", url);
     return new Promise(function(resolve, reject){
       // Get HTML -- Needs promise
       self.getHtml(url).done(function(html){
         // Resolve with url and unique links
-        // console.log("Html returned to getLinksFromUrl", url);
         resolve({
           url: url,
           links: self.getLinksFromHtml(html)
@@ -129,10 +118,8 @@ function Scraper(siteUrl){
     }
     
     return new Promise(function(resolve, reject){
-      // console.log('Requesting Site: ', site);
       request(site, function(error, response, html){
         if(!error){
-          // console.log('Got HTML!');
           resolve(html);
         }
         else{
@@ -144,35 +131,41 @@ function Scraper(siteUrl){
   };
 
   this.fakeDOM = function(html){
-    // console.log('Generating fake DOM');
     return cheerio.load(html);
   };
 
   this.getLinksFromHtml = function(html){
     var $ = self.fakeDOM(html),
       links = $('a'),
-      linksArray = Array.prototype.slice.call(links);
+      linksArray = Array.prototype.slice.call(links),
+      scrubbedLinks = [];
 
-    linksArray = linksArray.map(function(link){
-      return fixLink(link.attribs.href || "");
+    linksArray = linksArray.forEach(function(link){
+      var url = cleanUrl(link.attribs.href);
+
+      if(url && urlIsUnchecked(url)){
+        var fixedLink = fixLink(url);
+
+        if(fixedLink){
+          scrubbedLinks.push(fixedLink);
+        }
+      }
     });
 
-    linksArray = _.uniq(linksArray);
+    scrubbedLinks = _.uniq(scrubbedLinks);
 
-    // console.log('Links found in HTML', linksArray.length);
-    return linksArray;
+    return scrubbedLinks;
     
     function fixLink(linkUrl){
       var urlObj = url.parse(linkUrl);
         thisHost = url.parse(self.site).host,
-        blackListedExtensions = ['pdf'],
+        blackListedExtensions = ['.pdf'],
         isBlackListed = false;
 
       if(typeof linkUrl !== "string"){ 
-        console.log('Invalid string: ', linkUrl);
-        console.log("THROWN: ", linkUrl);
-        return false;
-        // throw new Error("fixLink must be passed a valid string!");
+        // console.log('Invalid string: ', linkUrl);
+        // return false;
+        throw new Error("fixLink must be passed a valid string!");
       }
 
       blackListedExtensions.forEach(function(ext){
@@ -185,9 +178,10 @@ function Scraper(siteUrl){
         return false;
       }
       else if(!urlObj.host){
-        return self.site + (linkUrl[0] === '/' ? linkUrl : '/' + linkUrl);
+        return false;
+        // return self.site + (linkUrl[0] === '/' ? linkUrl : '/' + linkUrl);
       }
-      else if(urlObj.host === thisHost){
+      else if(thisHost.indexOf(urlObj.host) !== -1 || urlObj.host.indexOf(thisHost) !== -1){
         return linkUrl;
       }
       else{
@@ -198,20 +192,20 @@ function Scraper(siteUrl){
 
   function addToCheckedLinks(url){
     if(self.checkedLinks.indexOf(url) === -1){
-      var index = self.uncheckedLinks.indexOf(url);
-
-      console.log("Adding to checked: ", url);
-
-      self.uncheckedLinks.splice(index, 1);
       self.checkedLinks.push(url);
+      removeFromUncheckedLinks(url);
     }
+  }
+
+  function removeFromUncheckedLinks(url){
+    self.uncheckedLinks.shift();
   }
 
   function addToUncheckedLinks(urlArray){
     urlArray.forEach(function(url){
       url = cleanUrl(url);
 
-      if(url && urlIsValid(url) && urlIsUnchecked(url) && self.uncheckedLinks.indexOf(url) === -1){
+      if(url && urlIsValid(url) && self.uncheckedLinks.indexOf(url) === -1){
         self.uncheckedLinks.push(url);
       }
     });
@@ -224,7 +218,7 @@ function Scraper(siteUrl){
   }
 
   function cleanUrl(url){
-    if(url[url.length - 1] === '/'){
+    if(url && url[url.length - 1] === '/'){
       url = url.slice(0, url.length - 1);
     }
 
