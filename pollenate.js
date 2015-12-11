@@ -52,8 +52,12 @@ function displayScraperForm(req, res){
 
 function scrapeSite(req, res){
   var site = req.body.site,
-    scraper = new Scraper(site);
+    sendResponse = function(scrapedSites){
+      res.send(scrapedSites);
+    },
+    scraper = new Scraper(site, sendResponse);
 
+  console.log('Scraping site: ', site);
   scraper.scrape([site]);
 }
 
@@ -61,12 +65,13 @@ function scrapeSite(req, res){
 /* =====================
     Scraper
 ======================*/
-function Scraper(siteUrl){
+function Scraper(siteUrl, doneScraping){
   var self = this;
 
   this.site = siteUrl;
   this.uncheckedLinks = [];
   this.checkedLinks = [];
+  this.checkedLinksObjects = [];
 
   this.scrape = function(urls){
     var promises = [];
@@ -81,7 +86,7 @@ function Scraper(siteUrl){
     Promise.all(promises).done(function(getLinksObjArray){
       getLinksObjArray.forEach(function(obj){
         // This url has now been scraped successfully
-        addToCheckedLinks(obj.url);
+        addToCheckedLinks(obj);
         // Add the links that it found to the uncheckedLinks array
         addToUncheckedLinks(obj.links);
       });
@@ -90,9 +95,16 @@ function Scraper(siteUrl){
         self.scrape(self.uncheckedLinks);
       }
       else{
-        console.log("DONE!!!! Found " + self.checkedLinks.length + " links!");
-        self.checkedLinks.forEach(function(link){
+        console.log("Found " + self.checkedLinks.length + " links.");
+        self.checkedLinks.forEach(function(link, i){
           console.log("Checked Link: ", link);
+          if(i === self.checkedLinks.length - 1){
+            console.log(self.checkedLinksObjects[i]);
+          }
+
+          if(typeof doneScraping === "function"){
+            doneScraping(self.checkedLinksObjects);
+          }
         });
         return self.checkedLinks;
       }
@@ -106,7 +118,8 @@ function Scraper(siteUrl){
         // Resolve with url and unique links
         resolve({
           url: url,
-          links: self.getLinksFromHtml(html)
+          links: self.getLinksFromHtml(html),
+          html: html
         });
       });
     });
@@ -178,8 +191,9 @@ function Scraper(siteUrl){
         return false;
       }
       else if(!urlObj.host){
-        return false;
-        // return self.site + (linkUrl[0] === '/' ? linkUrl : '/' + linkUrl);
+        // handle relative links
+        return self.site + (linkUrl[0] === '/' ? linkUrl : '/' + linkUrl);
+        // return false;
       }
       else if(thisHost.indexOf(urlObj.host) !== -1 || urlObj.host.indexOf(thisHost) !== -1){
         return linkUrl;
@@ -190,8 +204,11 @@ function Scraper(siteUrl){
     }
   };
 
-  function addToCheckedLinks(url){
+  function addToCheckedLinks(obj){
+    var url = obj.url;
+
     if(self.checkedLinks.indexOf(url) === -1){
+      self.checkedLinksObjects.push(obj);
       self.checkedLinks.push(url);
       removeFromUncheckedLinks(url);
     }
@@ -232,9 +249,10 @@ function Scraper(siteUrl){
   }
 }
 
-scrapeSite({
-  body: {
-    site: "http://www.charronmed.com"
-  }
-}, null);
+// scrapeSite({
+//   body: {
+//     site: "http://www.charronmed.com"
+//   }
+// }, null);
+// displayScraperForm();
 
