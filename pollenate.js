@@ -74,10 +74,12 @@ function Scraper(siteUrl){
     var promises = [];
 
     urls.forEach(function(url){
-      var newLinksPromise = self.getLinksFromUrl(url);
+      if(urlIsUnchecked(url)){
+        var newLinksPromise = self.getLinksFromUrl(url);
 
-      console.log('Got new links promise', newLinksPromise);
-      promises.push(newLinksPromise);
+        console.log('Got new links promise', newLinksPromise);
+        promises.push(newLinksPromise);
+      }
     });
 
     Promise.all(promises).done(function(getLinksObjArray){
@@ -148,7 +150,7 @@ function Scraper(siteUrl){
       linksArray = Array.prototype.slice.call(links);
 
     linksArray = linksArray.map(function(link){
-      return fixLink(link.attribs.href);
+      return fixLink(link.attribs.href || "");
     });
 
     linksArray = _.uniq(linksArray);
@@ -160,7 +162,9 @@ function Scraper(siteUrl){
       var urlObj = url.parse(linkUrl);
         thisHost = url.parse(self.site).host;
 
-      if(typeof linkUrl !== "string" || !linkUrl.length){ throw new Error("fixLink must be passed a valid string!");}
+      if(typeof linkUrl !== "string"){ 
+        console.log('Invalid string: ', linkUrl);
+        throw new Error("fixLink must be passed a valid string!");}
 
       if(!urlObj.host){
         return self.site + (linkUrl[0] === '/' ? linkUrl : '/' + linkUrl);
@@ -176,16 +180,41 @@ function Scraper(siteUrl){
 
   function addToCheckedLinks(url){
     if(self.checkedLinks.indexOf(url) === -1){
+      var i = self.uncheckedLinks.indexOf(url);
+
+      self.uncheckedLinks.splice(i, 1);
       self.checkedLinks.push(url);
     }
   }
 
   function addToUncheckedLinks(urlArray){
     urlArray.forEach(function(url){
-      if(url && self.uncheckedLinks.indexOf(url) === -1){
+      url = cleanUrl(url);
+
+      if(url && urlIsValid(url) && urlIsUnchecked(url) && self.uncheckedLinks.indexOf(url) === -1){
         self.uncheckedLinks.push(url);
       }
     });
+  }
+
+  function urlIsValid(url){
+    var rg = /^(http|https):\/\/(([a-zA-Z0-9$\-_.+!*'(),;:&=]|%[0-9a-fA-F]{2})+@)?(((25[0-5]|2[0-4][0-9]|[0-1][0-9][0-9]|[1-9][0-9]|[0-9])(\.(25[0-5]|2[0-4][0-9]|[0-1][0-9][0-9]|[1-9][0-9]|[0-9])){3})|localhost|([a-zA-Z0-9\-\u00C0-\u017F]+\.)+([a-zA-Z]{2,}))(:[0-9]+)?(\/(([a-zA-Z0-9$\-_.+!*'(),;:@&=]|%[0-9a-fA-F]{2})*(\/([a-zA-Z0-9$\-_.+!*'(),;:@&=]|%[0-9a-fA-F]{2})*)*)?(\?([a-zA-Z0-9$\-_.+!*'(),;:@&=\/?]|%[0-9a-fA-F]{2})*)?(\#([a-zA-Z0-9$\-_.+!*'(),;:@&=\/?]|%[0-9a-fA-F]{2})*)?)?$/;
+    
+    return rg.test(url);
+  }
+
+  function cleanUrl(url){
+    if(url[url.length - 1] === '/'){
+      url = url.slice(0, url.length - 1);
+    }
+
+    return url;
+  }
+
+  function urlIsUnchecked(url){
+    url = cleanUrl(url);
+    
+    return self.checkedLinks.indexOf(url) === -1;
   }
 }
 
