@@ -15,6 +15,7 @@ var scraperFormHtml = '<div class="title">Pollen Scraper</div>' +
 var fs = require('fs'),
   phantom = require('phantom'),
   express = require('express'),
+  path = require('path'),
   cheerio = require('cheerio'),
   request = require('request'),
   url = require('url'),
@@ -31,7 +32,9 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 }));
 
 // GET
-app.get('/', displayScraperForm);
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname + '/views/scraperForm.html'));
+});
 
 
 // POST
@@ -47,13 +50,17 @@ var server = app.listen(3000, function(){
 });
 
 function displayScraperForm(req, res){
-  res.send(scraperFormHtml);
+  fs.readFile('./views/scraperForm.html', function(err, data){
+    console.log(arguments);
+    res.send(data);
+    // res.send(scraperFormHtml);
+  });
 }
 
 function scrapeSite(req, res){
   var site = req.body.site,
     sendResponse = function(scrapedSites){
-      res.send(scrapedSites);
+      res.json(scrapedSites);
     },
     scraper = new Scraper(site, sendResponse);
 
@@ -169,6 +176,8 @@ function Scraper(siteUrl, doneScraping){
 
     return scrubbedLinks;
     
+    // TODO: change to whitelist
+    // also, check MIME type
     function fixLink(linkUrl){
       var urlObj = url.parse(linkUrl);
         thisHost = url.parse(self.site).host,
