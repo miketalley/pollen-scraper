@@ -1,0 +1,56 @@
+{
+  "name": "durandal",
+  "version": "2.1.0",
+  "description": "Durandal is a cross-device, cross-platform client framework written in JavaScript and designed to make Single Page Applications (SPAs) easy to create and maintain. We've used it to build apps for PC, Mac, Linux, iOS and Android...and now it's your turn...",
+  "main": "js/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BlueSpire/Durandal-Bower.git"
+  },
+  "keywords": [
+    "durandal",
+    "jquery",
+    "knockout",
+    "requirejs",
+    "spa"
+  ],
+  "author": {
+    "name": "Blue Spire"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BlueSpire/Durandal-Bower/issues"
+  },
+  "homepage": "https://github.com/BlueSpire/Durandal-Bower#readme",
+  "dependencies": {
+    "jquery": "^1.9.1",
+    "knockout": "^3.1.0",
+    "requirejs": "^2.1.11",
+    "requirejs-text": "^2.0.12"
+  },
+  "gitHead": "fe4ebd94ddac0efd5189288e0278bb081c4b06da",
+  "_id": "durandal@2.1.0",
+  "_shasum": "00a2023361c9fbf1b7a815df911cf9f45706d708",
+  "_from": "durandal@*",
+  "_npmVersion": "2.10.1",
+  "_nodeVersion": "0.12.4",
+  "_npmUser": {
+    "name": "eisenbergeffect",
+    "email": "rob@bluespire.com"
+  },
+  "maintainers": [
+    {
+      "name": "eisenbergeffect",
+      "email": "rob@bluespire.com"
+    }
+  ],
+  "dist": {
+    "shasum": "00a2023361c9fbf1b7a815df911cf9f45706d708",
+    "tarball": "http://registry.npmjs.org/durandal/-/durandal-2.1.0.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/durandal/-/durandal-2.1.0.tgz"
+}
