@@ -6,6 +6,7 @@ requirejs.config({
         'durandal': '../lib/durandal/js',
         'jquery': '../lib/jquery/dist/jquery.min',
         'knockout': '../lib/knockout/build/output/knockout-latest',
+        'knockout.punches': '../lib/knockout.punches/index',
         'plugins': '../lib/durandal/js/plugins',
         'text': '../lib/require/text',
         'transitions': '../lib/durandal/js/transitions'
@@ -24,7 +25,12 @@ define(function (require) {
     var app = require('durandal/app');
     var system = require('durandal/system');
     var viewLocator = require('durandal/viewLocator');
-
+    
+    require(['knockout', 'knockout.punches'], function(ko){
+        ko.punches.enableAll();
+        ko.punches.attributeInterpolationMarkup.enable();
+    });
+    
     system.debug(true);
 
     app.title = 'node.js Rules';

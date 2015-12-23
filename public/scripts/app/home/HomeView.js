@@ -9,15 +9,19 @@ define(function (require, exports, module) {
         // This is (one) convention used to manage the scope of 'this', common in Knockout examples:
         var self = this;
 
-        // This value will be data-bound to the references in HomeView.html:
+        self.message = ko.observable();
         self.siteUrl = ko.observable('');
-        self.links = ko.observableArray();
+        self.linkObjects = ko.observableArray();
 
         self.scrapeSite = function(){
           http.get('/api/scrapeSite', {
             site: self.siteUrl()
-          }).then(function(){
-            debugger;
+          }).then(function(linkObjects){
+            if(linkObjects && linkObjects.length){
+              self.linkObjects(linkObjects);
+            } else {
+              self.message('No links found on searched site.');
+            }
           });
         };
     }

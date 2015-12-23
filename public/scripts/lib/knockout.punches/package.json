@@ -1,0 +1,43 @@
+{
+  "name": "knockout.punches",
+  "version": "0.5.1",
+  "description": "Enhanced binding syntaxes for Knockout 3+",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:mbest/knockout.punches.git"
+  },
+  "author": {
+    "name": "mbest",
+    "email": "mbest@dasya.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mbest/knockout.punches/issues"
+  },
+  "homepage": "https://github.com/mbest/knockout.punches",
+  "_id": "knockout.punches@0.5.1",
+  "_from": "knockout.punches@*",
+  "_shasum": "aeae447ed44d1efdc43e018d0b0d4481c6962790",
+  "_npmVersion": "2.0.0",
+  "_npmUser": {
+    "name": "youngjay",
+    "email": "hiyoungjay@gmail.com"
+  },
+  "maintainers": [
+    {
+      "name": "youngjay",
+      "email": "hiyoungjay@gmail.com"
+    }
+  ],
+  "dist": {
+    "shasum": "aeae447ed44d1efdc43e018d0b0d4481c6962790",
+    "tarball": "http://registry.npmjs.org/knockout.punches/-/knockout.punches-0.5.1.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/knockout.punches/-/knockout.punches-0.5.1.tgz",
+  "deprecated": "This project has been renamed to knockout-punches (with a dash)."
+}

@@ -2,7 +2,7 @@
     <h3>Pollen Scraper</h3>
 
     <div class="row">
-        <div class="small-10 columns">
+        <div class="small-12 columns">
             <form data-bind="submit: scrapeSite" method="post">
                 <div class="row">
                     <div class="small-12 columns">
@@ -10,9 +10,23 @@
                         <input type="text" name="site" placeholder="http://www.something.com" data-bind="textInput: siteUrl"/>
                         </label>
                         <button class="button primary" type="submit">Scrape</button>
+                        <span class="error" data-bind="text: message" />
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="row" data-bind="visible: linkObjects().length, foreach: linkObjects">
+        <div class="row">
+            <div class="small-12 columns">
+                Url: {{ $data.url }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="small-12 columns">
+                <iframe data-bind="html: $data.html" />
+            </div>
         </div>
     </div>
 
